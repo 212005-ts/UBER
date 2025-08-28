@@ -1,49 +1,57 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { CaptainDataContext } from '../context/CaptainContext';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import React, { useContext, useEffect, useState } from 'react'
+import {CaptainDataContext} from '../context/CaptainContext'
+import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
 
-const UserProtectedWrapper = ({ children }) => {
+const CaptainProtectWrapper = ({
+    children
+}) => {
 
-    const { captain, setCaptain } = useContext(CaptainDataContext);
-    const token = localStorage.getItem('token');
-    const navigate = useNavigate();
+    const token = localStorage.getItem('token')
+    const navigate = useNavigate()
+    const { captain, setCaptain } = useContext(CaptainDataContext)
+    const [isLoading, setIsLoading] = useState(true)
 
-    const [isloading, setIsLoading] = useState(true);
+
+
 
     useEffect(() => {
         if (!token) {
-            navigate('/captain-login');
+            navigate('/captain-login')
         }
-    }, [token, navigate]);
 
-    useEffect(() => {
         axios.get(`${import.meta.env.VITE_BASE_URL}/captains/profile`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
-        }).then((response) => {
+        }).then(response => {
             if (response.status === 200) {
-                const data = response.data;
-                setCaptain(data.captain);
-                setIsLoading(false);
+                setCaptain(response.data.captain)
+                setIsLoading(false)
             }
-        }).catch((error) => {
-            console.error("Error fetching captain profile:", error);
-            localStorage.removeItem('token');
-            navigate('/captain-login');
-        });
-    }, [token, navigate, setCaptain, setIsLoading]);
+        })
+            .catch(err => {
 
-    if (isloading) {
-        return <div>Loading...</div>;
+                localStorage.removeItem('token')
+                navigate('/captain-login')
+            })
+    }, [token])
+
+
+
+    if (isLoading) {
+        return (
+            <div>Loading...</div>
+        )
     }
+
+
 
     return (
         <>
             {children}
         </>
-    );
-};
+    )
+}
 
-export default UserProtectedWrapper;
+export default CaptainProtectWrapper

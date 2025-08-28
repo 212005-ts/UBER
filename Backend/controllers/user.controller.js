@@ -1,7 +1,7 @@
-const userModel = require("../modles/user.model");
+const userModel = require("../models/user.model");
 const userService = require("../services/user.service");
 const { validationResult } = require("express-validator");
-const blacklistTokenSchema = require("../modles/blacklistToken.model");
+const blackListTokenModel = require("../models/blackListToken.model");
 
 module.exports.registerUser = async (req, res, next) => {
   const errors = validationResult(req);
@@ -11,18 +11,17 @@ module.exports.registerUser = async (req, res, next) => {
 
   const { fullname, email, password } = req.body;
 
-  const ifUserAlreadyExists = await userModel.findOne({ email });
+  const isUserAlready = await userModel.findOne({ email });
 
-  if (ifUserAlreadyExists) {
-    return res.status(400).json({ message: "User already exists." });
+  if (isUserAlready) {
+    return res.status(400).json({ message: "User already exist" });
   }
 
-  const user1 = new userModel(); // Create an instance of the model
-  const hashedPassword = await user1.hashPassword(password); // ✅ Works correctly
+  const hashedPassword = await userModel.hashPassword(password);
 
   const user = await userService.createUser({
     firstname: fullname.firstname,
-    lastname: fullname.lastname, 
+    lastname: fullname.lastname,
     email,
     password: hashedPassword,
   });
@@ -43,13 +42,13 @@ module.exports.loginUser = async (req, res, next) => {
   const user = await userModel.findOne({ email }).select("+password");
 
   if (!user) {
-    return res.status(401).json({ message: "User not found." });
+    return res.status(401).json({ message: "Invalid email or password" });
   }
 
   const isMatch = await user.comparePassword(password);
 
   if (!isMatch) {
-    return res.status(401).json({ message: "Invalid password." });
+    return res.status(401).json({ message: "Invalid email or password" });
   }
 
   const token = user.generateAuthToken();
@@ -65,9 +64,9 @@ module.exports.getUserProfile = async (req, res, next) => {
 
 module.exports.logoutUser = async (req, res, next) => {
   res.clearCookie("token");
-  const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
+  const token = req.cookies.token || req.headers.authorization.split(" ")[1];
 
-  await blacklistTokenSchema.create({ token });
+  await blackListTokenModel.create({ token });
 
-  res.status(200).json({ message: "Logout successful." });
-}
+  res.status(200).json({ message: "Logged out" });
+};

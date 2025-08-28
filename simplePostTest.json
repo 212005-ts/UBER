@@ -1,0 +1,9 @@
+{
+  "requestContext": {
+    "http": {
+      "method": "POST"
+    }
+  },
+  "body": "{\"test_id\":\"uid1234562t7y8\",\"role\":\"developer\"}",
+  "isBase64Encoded": false
+}
